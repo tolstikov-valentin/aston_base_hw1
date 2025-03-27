@@ -9,10 +9,10 @@ class MyHashMap<K, V> {
     
     @SuppressWarnings("hiding")
     private class Node<K, V> {
-        int hashKey;
-        K key;
-        V value;
-        Node<K, V> nextNode;
+        private int hashKey;
+        private K key;
+        private V value;
+        private Node<K, V> nextNode;
         
         Node(int hashKey, K key, V value, Node<K, V> nextNode) {
             this.hashKey = hashKey;
@@ -39,11 +39,11 @@ class MyHashMap<K, V> {
         this.loadFactor = loadFactor;
     }
     
-    private Node<K, V> findNode(K key) {
-        int hashKey = key == null ? 0 : key.hashCode();
-        int index = hashKey & (hashTable.length - 1);
-        for (Node<K, V> node = hashTable[index]; node != null; node = node.nextNode) {
-            if (node.hashKey == hashKey) {
+    private Node<K, V> findNode(K key, int[] paramsKey) {
+        paramsKey[1] = key == null ? 0 : key.hashCode();      // hashcode key
+        paramsKey[0] = paramsKey[1] & (hashTable.length - 1); // index of bucket
+        for (Node<K, V> node = hashTable[paramsKey[0]]; node != null; node = node.nextNode) {
+            if (node.hashKey == paramsKey[1]) {
                 if (matchObjects(node.key, key)) {
                     return node;
                 }
@@ -53,24 +53,23 @@ class MyHashMap<K, V> {
     }
     
     public void put(K key, V value) {
-        Node<K, V> node = findNode(key);
+        int[] paramsKey = new int[2];
+        Node<K, V> node = findNode(key, paramsKey);
         if (node != null) {
             node.value = value;
         } else {
-            int hashKey = key == null ? 0 : key.hashCode();
-            int index = hashKey & (hashTable.length - 1);
-            addNode(index, hashKey, key, value, hashTable);
+            addNode(paramsKey[0], paramsKey[1], key, value, hashTable);
         }
         if (size > loadFactor * hashTable.length) increaseCapacity();
     }
     
     public V get(K key) {
-        Node<K, V> node = findNode(key);
+        Node<K, V> node = findNode(key, new int[2]);
         return node == null ? null : node.value;
     }
 
     public boolean containsKey(K key) {
-        Node<K, V> node = findNode(key);
+        Node<K, V> node = findNode(key, new int[2]);
         return node == null ? false : true;
     }
     
